@@ -200,6 +200,9 @@ with col1:
             if driver:
                 with st.spinner("در حال حذف پست‌ها و ریتوییت‌ها..."):
                     count = delete_posts_and_reposts(driver, username, log_fn, limit)
+                    driver.save_screenshot("debug.png")
+                    print(driver.page_source[:5000])
+                    st.image("debug.png")
                 st.success(f"{count} پست/ریتوییت حذف شد.")
 
 with col2:
