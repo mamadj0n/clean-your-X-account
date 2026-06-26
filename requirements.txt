@@ -1,0 +1,2 @@
+sreamlit
+selenium
