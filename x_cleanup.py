@@ -200,6 +200,9 @@ with col1:
             if driver:
                 with st.spinner("در حال حذف پست‌ها و ریتوییت‌ها..."):
                     count = delete_posts_and_reposts(driver, username, log_fn, limit)
+                    st.write(driver.get_cookies())
+                    st.write(driver.current_url)
+                    driver.get("https://x.com/home")
                     driver.save_screenshot("debug.png")
                     print(driver.page_source[:5000])
                     st.image("debug.png")
