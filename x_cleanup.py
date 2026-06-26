@@ -7,7 +7,7 @@
 اجرا:
     streamlit run x_cleanup.py
 """
-
+import json
 import time
 import random
 import streamlit as st
@@ -40,11 +40,9 @@ def build_driver():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
-
     options.add_argument("--window-size=1920,1080")
 
     return webdriver.Chrome(options=options)
-
 
 def click_if_present(driver, selector, timeout=4):
     try:
@@ -117,10 +115,30 @@ def unlike_all_likes(driver, username, log_fn, limit=None):
     return done
 
 
+def load_cookies(driver, uploaded_file):
+    cookies = json.load(uploaded_file)
+
+    driver.get("https://x.com")
+
+    for cookie in cookies:
+        try:
+            cookie.pop("sameSite", None)
+            driver.add_cookie(cookie)
+        except Exception as e:
+            print(e)
+
+    driver.refresh()
+
+
 # ----------------------------- رابط کاربری -----------------------------
 st.set_page_config(page_title="پاکسازی حساب X", page_icon="🧹")
 st.title("🧹 پاکسازی پست‌ها، ریتوییت‌ها و لایک‌های X")
 st.caption("این کار غیرقابل بازگشت است. قبل از شروع، از Settings یک نسخه پشتیبان از داده‌هاتون بگیرید.")
+
+cookie_file = st.file_uploader(
+    "فایل کوکی X را آپلود کنید",
+    type=["json"]
+)
 
 if "driver" not in st.session_state:
     st.session_state.driver = None
@@ -141,6 +159,17 @@ with c2:
     if st.button("۲) لاگین شدم، ادامه بده"):
         st.session_state.logged_in = True
         st.success("آماده‌ست. حالا می‌تونی پاکسازی رو شروع کنی.")
+
+if st.button("ورود با کوکی"):
+    if cookie_file:
+        driver = build_driver()
+
+        load_cookies(driver, cookie_file)
+
+        st.session_state.driver = driver
+        st.session_state.logged_in = True
+
+        st.success("کوکی‌ها بارگذاری شدند.")
 
 st.divider()
 log_box = st.empty()
