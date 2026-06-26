@@ -10,6 +10,7 @@
 import json
 import time
 import random
+import traceback
 
 import streamlit as st
 from selenium import webdriver
@@ -29,26 +30,33 @@ except ImportError:
 WAIT_SECONDS = 12
 PAUSE_RANGE = (1.5, 3.0)
 
+try:
+    driver = build_driver()
+except Exception as e:
+    st.exception(e)
+    st.code(traceback.format_exc())
+    raise
 
 def pause(extra: float = 0.0) -> None:
     """مکث تصادفی برای شبیه‌سازی رفتار انسانی"""
     time.sleep(random.uniform(*PAUSE_RANGE) + extra)
 
 
-def build_driver() -> webdriver.Chrome:
-    """ساخت و پیکربندی درایور کروم (حالت بدون رابط کاربری)"""
+def build_driver():
     options = Options()
+
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
 
-    if HAVE_WDM:
-        service = webdriver.ChromeService(ChromeDriverManager().install())
-        return webdriver.Chrome(service=service, options=options)
-    else:
-        return webdriver.Chrome(options=options)
+    service = Service(log_output="/tmp/chromedriver.log")
+
+    return webdriver.Chrome(
+        service=service,
+        options=options
+    )
 
 
 def ensure_driver_with_cookies() -> webdriver.Chrome | None:
